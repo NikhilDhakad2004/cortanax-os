@@ -92,23 +92,39 @@ module.exports = async function handler(req, res) {
     }
     contents.push({ role: 'user', parts: [{ text: message }] });
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: buildSystemPrompt(safeMode) }] },
-          contents,
-          generationConfig: { temperature: safeMode === 'recruiter' ? 0.5 : 0.8, maxOutputTokens: 400 }
-        })
-      }
-    );
+    const requestBody = JSON.stringify({
+      system_instruction: { parts: [{ text: buildSystemPrompt(safeMode) }] },
+      contents,
+      generationConfig: { temperature: safeMode === 'recruiter' ? 0.5 : 0.8, maxOutputTokens: 400 }
+    });
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      console.error('Gemini API error:', errText);
-      return res.status(502).json({ error: 'AI service error. Try again in a moment.' });
+    // Gemini free tier occasionally returns 503 "model is overloaded" under high demand —
+    // this is Google's server-side congestion, not a bug in this app. Retry briefly, then
+    // fall back to a second model before giving up.
+    const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+    let geminiRes = null;
+    let lastErrText = '';
+
+    for (const model of modelsToTry) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const r = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: requestBody }
+        );
+        if (r.ok) { geminiRes = r; break; }
+        lastErrText = await r.text();
+        console.error(`Gemini API error (${model}, attempt ${attempt + 1}):`, lastErrText);
+        if (r.status === 503 && attempt === 0) {
+          await new Promise(resolve => setTimeout(resolve, 800)); // brief backoff, then retry same model once
+          continue;
+        }
+        break; // non-503 error, or already retried — move on to the fallback model
+      }
+      if (geminiRes) break;
+    }
+
+    if (!geminiRes) {
+      return res.status(502).json({ error: 'AI service is busy right now. Try again in a moment.' });
     }
 
     const data = await geminiRes.json();
