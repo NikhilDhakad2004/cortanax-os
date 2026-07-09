@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CortanaX OS — Nikhil Dhakad</title>
+<meta name="description" content="CortanaX OS — an AI-powered portfolio experience by Nikhil Dhakad, AI/ML Developer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script>
+  // Apply saved theme before first paint to avoid a light/dark flash
+  (function(){
+    try{
+      var t = localStorage.getItem('cortanax_theme');
+      if(t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    }catch(e){}
+  })();
+</script>
+</head>
+<body>
+
+<div class="starfield" id="starfield"></div>
+<canvas id="particle-canvas"></canvas>
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<!-- ============ BOOT SCREEN ============ -->
+<section id="bootScreen" class="boot-screen">
+  <div class="boot-core">
+    <div class="core-ring core-ring--1"></div>
+    <div class="core-ring core-ring--2"></div>
+    <div class="core-ring core-ring--3"></div>
+    <div class="core-glow"></div>
+  </div>
+  <pre id="bootLog" class="boot-log"></pre>
+  <div class="boot-skip" id="bootSkip">skip →</div>
+</section>
+
+<!-- ============ OS SHELL ============ -->
+<div id="osShell" class="os-shell hidden">
+
+  <!-- Top HUD bar -->
+  <header class="hud-bar">
+    <div class="hud-brand">
+      <span class="hud-brand__core"></span>
+      <span class="hud-brand__text">CORTANA<span class="accent">X</span> OS</span>
+    </div>
+    <div class="hud-clock" id="hudClock">--:--:--</div>
+    <button class="wake-toggle" id="wakeToggle" type="button" title="Enable 'Hey CortanaX' hands-free activation" aria-pressed="false">🎙️ Hey CortanaX: Off</button>
+    <button class="icon-toggle" id="soundToggle" type="button" title="Toggle UI sound effects" aria-pressed="false">🔈</button>
+    <button class="icon-toggle" id="themeToggle" type="button" title="Toggle light/dark theme" aria-pressed="false">🌙</button>
+    <div class="hud-status">
+      <span class="status-dot"></span> SYSTEM ONLINE
+    </div>
+  </header>
+
+  <!-- Main scroll content -->
+  <main class="os-main" id="osMain">
+
+    <!-- HOME / DASHBOARD -->
+    <section id="home" class="panel panel--home">
+      <div class="scanlines"></div>
+      <div class="home-content">
+        <div class="eyebrow">// NEURAL_CORE — USER SESSION ACTIVE</div>
+        <h1 class="home-title">
+          Hello. I'm <span class="accent">CortanaX</span>,<br>
+          the personal AI of <span class="accent-2" id="ownerName">Nikhil Dhakad</span>.
+        </h1>
+        <p class="home-sub" id="homeTagline">Building intelligent systems that see, decide, and act.</p>
+        <div class="home-actions">
+          <button class="btn btn--primary" data-nav="assistant">Talk to CortanaX</button>
+          <button class="btn btn--ghost" data-nav="projects">View Projects</button>
+        </div>
+      </div>
+
+      <div class="visitor-scan" id="visitorScan">
+        <div class="visitor-scan__header">
+          <span class="visitor-scan__dot"></span> VISITOR SCAN — LIVE
+        </div>
+        <div class="visitor-scan__grid" id="visitorScanGrid">
+          <div class="vs-item"><span class="vs-label">LOCAL TIME</span><span class="vs-value" id="vsTime">--</span></div>
+          <div class="vs-item"><span class="vs-label">TIMEZONE</span><span class="vs-value" id="vsTz">--</span></div>
+          <div class="vs-item"><span class="vs-label">PLATFORM</span><span class="vs-value" id="vsPlatform">--</span></div>
+          <div class="vs-item"><span class="vs-label">BROWSER</span><span class="vs-value" id="vsBrowser">--</span></div>
+          <div class="vs-item"><span class="vs-label">CONNECTION</span><span class="vs-value" id="vsConn">--</span></div>
+          <div class="vs-item"><span class="vs-label">SCREEN</span><span class="vs-value" id="vsScreen">--</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI ASSISTANT -->
+    <section id="assistant" class="panel panel--assistant">
+      <h2 class="panel-title"><span class="tag">02</span> AI Assistant</h2>
+      <div class="chat-toolbar">
+        <div class="mode-toggle" id="modeToggle" role="group" aria-label="Chat mode">
+          <button class="mode-btn active" data-mode="default" id="modeDefaultBtn" type="button">💬 Chat Mode</button>
+          <button class="mode-btn" data-mode="recruiter" id="modeRecruiterBtn" type="button">🎯 Recruiter Mode</button>
+        </div>
+        <button class="voice-toggle" id="voiceToggle" type="button" title="Toggle spoken replies" aria-pressed="false">🔊 Voice: Off</button>
+        <button class="voice-toggle" id="clearMemoryBtn" type="button" title="Forget this conversation">🧹 Clear Memory</button>
+      </div>
+      <div class="chat-memory-note" id="chatMemoryNote"></div>
+      <div class="chat-window">
+        <div class="chat-log" id="chatLog">
+          <div class="chat-msg chat-msg--ai">
+            <span class="chat-avatar"></span>
+            <div class="chat-bubble">I'm CortanaX — Nikhil's personal AI. Ask me about his skills, projects, or experience. Try: <em>"tell me about his AI project"</em></div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <button id="micBtn" class="btn btn--ghost btn--sm mic-btn" type="button" title="Speak your question">🎙️</button>
+          <input type="text" id="chatInput" class="chat-input" placeholder="Ask CortanaX anything about Nikhil...">
+          <button id="chatSend" class="btn btn--primary btn--sm">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="panel panel--about">
+      <h2 class="panel-title"><span class="tag">03</span> About Me</h2>
+      <div class="about-grid">
+        <div class="profile-card">
+          <img src="assets/profile.jpg" alt="Nikhil Dhakad" class="profile-card__img">
+          <div class="profile-card__name" id="aboutName">Nikhil Dhakad</div>
+          <div class="profile-card__role" id="aboutRole">AI/ML Developer</div>
+          <div class="profile-card__meta" id="aboutLocation">Chennai, India</div>
+        </div>
+        <div class="about-details">
+          <p class="about-bio" id="aboutBio"></p>
+          <h3 class="sub-heading">Education</h3>
+          <div id="educationTimeline" class="timeline"></div>
+          <h3 class="sub-heading">Career Goals</h3>
+          <p class="about-goals" id="careerGoals"></p>
+          <h3 class="sub-heading">Achievements</h3>
+          <div id="achievementsList" class="achievements-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SKILLS -->
+    <section id="skills" class="panel panel--skills">
+      <h2 class="panel-title"><span class="tag">04</span> Skills Lab</h2>
+      <div id="skillsGrid" class="skills-grid"></div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects" class="panel panel--projects">
+      <h2 class="panel-title"><span class="tag">05</span> Projects Lab</h2>
+      <div id="projectsGrid" class="projects-grid"></div>
+    </section>
+
+    <!-- RESUME -->
+    <section id="resume" class="panel panel--resume">
+      <h2 class="panel-title"><span class="tag">06</span> Resume Center</h2>
+      <div class="resume-box">
+        <div class="resume-box__text">
+          <p>Full resume — experience, education, and certifications in one document.</p>
+          <a href="assets/Nikhil_Dhakad_Resume.pdf" download class="btn btn--primary">⬇ Download Resume PDF</a>
+        </div>
+      </div>
+      <h3 class="sub-heading">Experience</h3>
+      <div id="experienceList" class="timeline"></div>
+    </section>
+
+    <!-- CERTIFICATES -->
+    <section id="certs" class="panel panel--certs">
+      <h2 class="panel-title"><span class="tag">07</span> Certificates Vault</h2>
+      <div id="certsGrid" class="certs-grid"></div>
+    </section>
+
+    <!-- GITHUB ANALYTICS -->
+    <section id="github" class="panel panel--github">
+      <h2 class="panel-title"><span class="tag">08</span> GitHub Analytics</h2>
+      <div id="githubStatus" class="gh-status">Connecting to GitHub API...</div>
+      <div id="githubContent" class="gh-content hidden">
+        <div class="gh-stats-row" id="ghStatsRow"></div>
+        <h3 class="sub-heading">Contribution Graph</h3>
+        <div class="gh-chart-wrap">
+          <img id="ghChartImg" class="gh-chart-img" alt="GitHub contribution graph" />
+        </div>
+        <h3 class="sub-heading">Top Languages</h3>
+        <div id="ghLangBars" class="gh-lang-bars"></div>
+        <h3 class="sub-heading">Repositories</h3>
+        <div id="ghRepoGrid" class="gh-repo-grid"></div>
+      </div>
+    </section>
+
+    <!-- TERMINAL -->
+    <section id="terminal" class="panel panel--terminal">
+      <h2 class="panel-title"><span class="tag">09</span> Terminal</h2>
+      <div class="terminal-window" id="terminalWindow">
+        <div class="terminal-header">
+          <span class="term-dot term-dot--r"></span>
+          <span class="term-dot term-dot--y"></span>
+          <span class="term-dot term-dot--g"></span>
+          <span class="terminal-header__title">cortanax@nikhil:~$</span>
+        </div>
+        <div class="terminal-body" id="terminalBody">
+          <div class="term-line">Type <span class="accent">help</span> to see available commands.</div>
+        </div>
+        <div class="terminal-input-row">
+          <span class="term-prompt">&gt;</span>
+          <input type="text" id="terminalInput" class="terminal-input" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="panel panel--contact">
+      <h2 class="panel-title"><span class="tag">10</span> Contact Hub</h2>
+      <div class="contact-grid" id="contactGrid"></div>
+
+      <div class="contact-lower">
+        <form class="contact-form glass" id="contactForm">
+          <h3 class="sub-heading" style="margin-top:0">Send a Message</h3>
+          <div class="form-row">
+            <input type="text" id="cfName" class="form-input" placeholder="Your name" required>
+            <input type="email" id="cfEmail" class="form-input" placeholder="Your email" required>
+          </div>
+          <textarea id="cfMessage" class="form-input form-textarea" placeholder="Your message..." required></textarea>
+          <button type="submit" class="btn btn--primary" id="cfSubmit">Send Message</button>
+          <div class="form-status" id="cfStatus"></div>
+        </form>
+
+        <div class="qr-card glass">
+          <h3 class="sub-heading" style="margin-top:0">Scan to Visit</h3>
+          <img id="qrCode" class="qr-code-img" alt="QR code linking to this portfolio" width="180" height="180">
+          <div class="qr-card__label" id="qrLabel">Scan with your phone camera</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Dock -->
+  <nav class="dock" id="dock">
+    <button class="dock-item active" data-nav="home" title="Home">🏠</button>
+    <button class="dock-item" data-nav="assistant" title="AI Assistant">🤖</button>
+    <button class="dock-item" data-nav="about" title="About">👤</button>
+    <button class="dock-item" data-nav="skills" title="Skills">💻</button>
+    <button class="dock-item" data-nav="projects" title="Projects">🚀</button>
+    <button class="dock-item" data-nav="resume" title="Resume">📜</button>
+    <button class="dock-item" data-nav="certs" title="Certificates">🏆</button>
+    <button class="dock-item" data-nav="github" title="GitHub Analytics">📈</button>
+    <button class="dock-item" data-nav="terminal" title="Terminal">💻</button>
+    <button class="dock-item" data-nav="contact" title="Contact">🌍</button>
+  </nav>
+
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
