@@ -26,7 +26,7 @@ const CORTANAX_DATA = {
     resumeFile: "assets/Nikhil_Dhakad_Resume.pdf",
     // Set this to your live deployed URL once you deploy (e.g. "https://cortanax-nikhil.vercel.app").
     // Used to generate the QR code in the Contact Hub. Falls back to the GitHub profile until set.
-    siteUrl: "",
+    siteUrl: "https://cortanax-os.vercel.app",
     // Formspree form endpoint for the Contact Hub form (e.g. "https://formspree.io/f/xxxxxxx").
     // Get a free one at https://formspree.io — until set, the form falls back to opening the user's email app.
     formspreeEndpoint: ""
@@ -134,6 +134,25 @@ const CORTANAX_DATA = {
       ],
       github: "https://github.com/NikhilDhakad2004/AI-Border-Intelligence-",
       demo: "https://qxn4jsvtbq3hgrdazr9ina.streamlit.app/",
+      image: null
+    },
+    {
+      id: "cortanax-os",
+      name: "CortanaX OS",
+      subtitle: "AI-Native Portfolio Operating System",
+      description: "This site. A portfolio reimagined as a full AI operating system rather than a static resume — complete with a boot sequence, a live terminal, real-time GitHub analytics, and CortanaX herself: a Gemini-powered personal AI assistant who can talk about Nikhil's skills and projects, or answer general questions, in voice or text.",
+      flagship: false,
+      tech: ["JavaScript", "HTML5", "CSS3", "Node.js", "Vercel Serverless Functions", "Gemini API", "Web Speech API", "Web Audio API"],
+      features: [
+        "Gemini-powered AI chat with a dedicated Recruiter/Interview Mode",
+        "Voice input + spoken replies, plus a hands-free \"Hey CortanaX\" wake word",
+        "Live terminal with custom commands (help, skills, projects, resume...)",
+        "Real-time GitHub stats and contribution graph via the GitHub API",
+        "AI memory that persists conversations across visits",
+        "Animated boot sequence, circular skill rings, light/dark themes, and a synthesized sound design"
+      ],
+      github: "https://github.com/NikhilDhakad2004/cortanax-os",
+      demo: "https://cortanax-os.vercel.app",
       image: null
     }
   ],
