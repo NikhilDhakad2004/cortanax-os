@@ -86,7 +86,11 @@ module.exports = async function handler(req, res) {
 
     const contents = [];
     if (Array.isArray(history)) {
-      history.slice(-10).forEach(h => {
+      // Gemini's context window is enormous relative to a chat widget's message sizes —
+      // sending more history costs almost nothing and genuinely improves "memory" over a
+      // long conversation. 24 keeps it well aligned with the 40-message localStorage cap
+      // on the frontend without ballooning the request.
+      history.slice(-24).forEach(h => {
         contents.push({ role: h.role === 'ai' ? 'model' : 'user', parts: [{ text: h.text }] });
       });
     }

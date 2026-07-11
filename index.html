@@ -91,6 +91,12 @@
     <!-- AI ASSISTANT -->
     <section id="assistant" class="panel panel--assistant">
       <h2 class="panel-title"><span class="tag">02</span> AI Assistant</h2>
+      <div class="cortana-figure-wrap" id="cortanaFigureWrap">
+        <video id="arCameraFeed" class="cortana-figure__cam" autoplay muted playsinline></video>
+        <div id="cortanaFigure" class="cortana-figure"></div>
+        <div class="cortana-figure__state" id="figureStateLabel">IDLE</div>
+        <button class="cortana-figure__ar-btn" id="arModeBtn" type="button">✨ AR Mode</button>
+      </div>
       <div class="chat-toolbar">
         <div class="mode-toggle" id="modeToggle" role="group" aria-label="Chat mode">
           <button class="mode-btn active" data-mode="default" id="modeDefaultBtn" type="button">💬 Chat Mode</button>
@@ -248,7 +254,9 @@
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="js/data.js"></script>
+<script src="js/figure.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

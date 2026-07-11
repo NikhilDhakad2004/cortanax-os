@@ -263,6 +263,38 @@ document.querySelectorAll('.dock-item, .btn, .mode-btn, .wake-toggle, .voice-tog
 });
 
 /* ---------- CURSOR GLOW ---------- */
+if(window.CortanaFigure) CortanaFigure.init('cortanaFigure');
+
+const arModeBtn = document.getElementById('arModeBtn');
+let arActive = false;
+if(arModeBtn){
+  // Hide the button entirely if this browser can't do camera access at all —
+  // no point offering a feature that will only ever fail here.
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    arModeBtn.style.display = 'none';
+  }
+  arModeBtn.addEventListener('click', async () => {
+    if(!window.CortanaFigure) return;
+    if(!arActive){
+      arModeBtn.textContent = '...';
+      const result = await CortanaFigure.enableAR();
+      if(result.ok){
+        arActive = true;
+        arModeBtn.textContent = '✖ Exit AR';
+        arModeBtn.classList.add('active');
+      } else {
+        arModeBtn.textContent = result.reason === 'denied' ? '🚫 Camera blocked' : '⚠️ Not available here';
+        setTimeout(() => { arModeBtn.textContent = '✨ AR Mode'; }, 2200);
+      }
+    } else {
+      CortanaFigure.disableAR();
+      arActive = false;
+      arModeBtn.textContent = '✨ AR Mode';
+      arModeBtn.classList.remove('active');
+    }
+  });
+}
+
 const cursorGlow = document.getElementById('cursorGlow');
 window.addEventListener('mousemove', e => {
   cursorGlow.style.left = e.clientX + 'px';
@@ -654,7 +686,10 @@ function ensureVoiceLoaded(){
 ensureVoiceLoaded();
 
 function speak(text){
-  if(!voiceOutputOn || !('speechSynthesis' in window)) return;
+  if(!voiceOutputOn || !('speechSynthesis' in window)){
+    if(window.CortanaFigure) CortanaFigure.setState('idle');
+    return;
+  }
   const clean = text.replace(/<[^>]*>/g, ''); // strip HTML tags before speaking
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(clean);
@@ -662,6 +697,12 @@ function speak(text){
   if(chosenVoice) utter.voice = chosenVoice;
   utter.rate = 1.02;
   utter.pitch = 1.05; // slightly higher pitch reinforces a female tone as a fallback on voices without gender in the name
+  if(window.CortanaFigure){
+    utter.onstart = () => CortanaFigure.setState('speaking');
+    utter.onboundary = () => CortanaFigure.pulse(); // approximates a talking rhythm from real word timing
+    utter.onend = () => CortanaFigure.setState('idle');
+    utter.onerror = () => CortanaFigure.setState('idle');
+  }
   window.speechSynthesis.speak(utter);
 }
 voiceToggle.addEventListener('click', () => {
@@ -831,6 +872,7 @@ async function handleSend(){
 
   const typingBubble = addChatMsg('<em>thinking...</em>', 'ai');
   const bubbleEl = typingBubble.querySelector('.chat-bubble');
+  if(window.CortanaFigure) CortanaFigure.setState('thinking');
 
   try{
     const res = await fetch('/api/chat', {
